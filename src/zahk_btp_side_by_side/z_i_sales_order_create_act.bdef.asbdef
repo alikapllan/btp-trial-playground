@@ -1,0 +1,15 @@
+abstract;
+// strict( 2 ); -> commented out otherwise causing issues on syntax for mandatory keyword
+
+define behavior for Z_I_SALES_ORDER_CREATE_ACT //alias <alias_name>
+{
+  field ( mandatory ) SalesOrderType,
+  SalesOrganization,
+  DistributionChannel,
+  OrganizationDivision,
+  SalesDistrict,
+  SoldToParty,
+  RequestedDeliveryDate,
+  RequestedQuantity,
+  RequestedQuantityUnit;
+}

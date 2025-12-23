@@ -11,4 +11,7 @@ authorization master ( instance )
 //  update;
 //  delete;
   field ( readonly ) SalesOrder;
+
+  static action ( authorization : global ) CreateSalesOrderWithItem
+    parameter Z_I_SALES_ORDER_CREATE_ACT;
 }

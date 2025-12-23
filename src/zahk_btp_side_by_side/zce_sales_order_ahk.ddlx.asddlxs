@@ -20,7 +20,9 @@ annotate entity ZCE_SALES_ORDER_AHK with
                  position: 20,
                  targetElement: '_Items' } ]
   @UI.identification: [ { position: 10, label: 'Sales Order' } ]
-  @UI.lineItem: [ { position: 10, importance: #HIGH, label: 'Sales Order' } ]
+  @UI.lineItem: [ { position: 10, importance: #HIGH, label: 'Sales Order' },
+                  // Actions
+                  { type: #FOR_ACTION, dataAction: 'CreateSalesOrderWithItem', label: 'Create Sales Order with Item' } ]
   @UI.selectionField: [ { position: 10 } ]
   SalesOrder;
 
@@ -67,7 +69,7 @@ annotate entity ZCE_SALES_ORDER_AHK with
   @UI.identification: [ { position: 130, label: 'Delivery Date' } ]
   @UI.lineItem: [ { position: 90, importance: #MEDIUM, label: 'Delivery Date' } ]
   RequestedDeliveryDate;
-
+  
   @UI.hidden: true
   _Items;
 }

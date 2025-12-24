@@ -34,6 +34,8 @@ define root abstract entity Z_I_SALES_ORDER_CREATE_ACT
       RequestedDeliveryDate : abap.dats;
 
       // Item details
+      @Consumption.valueHelpDefinition: [ { entity: { name: 'ZCE_VH_MATERIALS_FOR_ITEMS_AHK', element: 'Material' },
+                                            useForValidation: true } ]
       @EndUserText.label: 'Material'
       Material                : abap.char(40);
 

@@ -10,6 +10,7 @@ define behavior for Z_I_SALES_ORDER_CREATE_ACT //alias <alias_name>
   SalesDistrict,
   SoldToParty,
   RequestedDeliveryDate,
+  Material,
   RequestedQuantity,
   RequestedQuantityUnit;
 }

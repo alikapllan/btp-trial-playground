@@ -6,8 +6,7 @@
 define root custom entity ZCE_SALES_ORDER_AHK
 
 {
-      @Consumption.valueHelpDefinition: [ { entity: { name: 'ZCE_VH_SALES_ORDER_AHK', element: 'SalesOrder' },
-                                            useForValidation: true } ]
+      @Consumption.valueHelpDefinition: [ { entity: { name: 'ZCE_VH_SALES_ORDER_AHK', element: 'SalesOrder' } } ]
   key SalesOrder           : abap.char(10);
 
       SalesOrderType       : abap.char(4);

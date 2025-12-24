@@ -202,6 +202,8 @@ CLASS zcl_ce_sales_order_ahk IMPLEMENTATION.
                                                   iv_property_path = 'SALES_ORDER'
                                                   it_range         = lt_r_sales_order_hdr ) ).
 
+            lo_read_list_request->set_orderby( VALUE #( ( property_path = 'SALES_ORDER' descending = abap_true ) ) ).
+
             lo_read_list_request->set_top( lines( lt_r_sales_order ) ).
             lo_read_list_request->set_skip( 0 ).
           ELSE.

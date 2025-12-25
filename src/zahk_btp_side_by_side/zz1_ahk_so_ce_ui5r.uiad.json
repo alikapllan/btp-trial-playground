@@ -1,0 +1,34 @@
+{
+  "formatVersion": "2",
+  "header": {
+    "description": "Sales Order - Custom Entity Side-by-Side",
+    "originalLanguage": "en",
+    "abapLanguageVersion": "cloudDevelopment"
+  },
+  "generalInformation": {
+    "appType": "ui5",
+    "catalogId": "SAP_TC_UI5_REPO_UIAD",
+    "targetMappingTitle": "Sales Order - Custom Entity Side-by-Side"
+  },
+  "ui5AppDetails": {
+    "appId": "com.ahk.salesorder"
+  },
+  "navigation": {
+    "targetMappingId": "UI5R_6D999B52E74A14076523A23BDADF3741ED8971B6_TM",
+    "semanticObject": "SO_AHK_SALESORDER_CE",
+    "action": "manage",
+    "desktop": true,
+    "tablet": true,
+    "phone": true
+  },
+  "tiles": [
+    {
+      "id": "UI5R_6D999B52E74A14076523A23BDADF3741ED8971B6_AL",
+      "tileType": "static",
+      "isDefault": true,
+      "standard": {
+        "title": "Sales Order - Custom Entity Side-by-Side"
+      }
+    }
+  ]
+}

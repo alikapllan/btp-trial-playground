@@ -29,26 +29,56 @@ CLASS zcl_ce_vh_sales_order_ahk IMPLEMENTATION.
     DATA business_data_vh     TYPE t_business_data_vh.
     DATA total_count          TYPE int8.
 
-    DATA(top)           = io_request->get_paging( )->get_page_size( ).
-    DATA(skip)          = io_request->get_paging( )->get_offset( ).
+    IF io_request->is_data_requested( ) = abap_false.
+      RETURN.
+    ENDIF.
+
+    "------------------------------------------------------------
+    " RAP query coverage (must call)
+    "------------------------------------------------------------
+    DATA(top)           = CONV i( io_request->get_paging( )->get_page_size( ) ).
+    DATA(skip)          = CONV i( io_request->get_paging( )->get_offset( ) ).
     DATA(sort_elements) = io_request->get_sort_elements( ). " coverage
 
+    IF top <= 0.
+      top = 50.
+    ENDIF.
+
     TRY.
+        " Filter (if user types in VH)
         DATA(filter_condition) = io_request->get_filter( )->get_as_ranges( ).
 
         get_sales_orders_vh( EXPORTING filter_conditions = filter_condition
-                                       top               = CONV i( top )
-                                       skip              = CONV i( skip )
+                                       top               = top
+                                       skip              = skip
                                        sort_elements     = sort_elements
                              IMPORTING business_data     = business_data_remote
                                        total_count       = total_count ).
 
-      CATCH cx_rap_query_filter_no_range.
-        get_sales_orders_vh( EXPORTING top           = CONV i( top )
-                                       skip          = CONV i( skip )
-                                       sort_elements = sort_elements
-                             IMPORTING business_data = business_data_remote
-                                       total_count   = total_count ).
+      CATCH cx_http_dest_provider_error INTO DATA(lx_dest_error).
+        RAISE EXCEPTION NEW zcx_ahk_rap_ce_sales_order(
+            iv_text  = |Check Communication Arrangement. Destination error while reading sales order value help: { lx_dest_error->get_text( ) }|
+            previous = lx_dest_error ).
+      CATCH cx_web_http_client_error INTO DATA(lx_http).
+        RAISE EXCEPTION NEW zcx_ahk_rap_ce_sales_order(
+            iv_text  = |HTTP client error while reading sales order value help: { lx_http->get_text( ) }|
+            previous = lx_http ).
+      CATCH /iwbep/cx_cp_remote INTO DATA(lx_remote).
+        RAISE EXCEPTION NEW zcx_ahk_rap_ce_sales_order(
+            iv_text  = |Remote error while reading sales order value help: { lx_remote->get_text( ) }|
+            previous = lx_remote ).
+      CATCH /iwbep/cx_gateway INTO DATA(lx_gateway).
+        RAISE EXCEPTION NEW zcx_ahk_rap_ce_sales_order(
+            iv_text  = |Gateway error while reading sales order value help: { lx_gateway->get_text( ) }|
+            previous = lx_gateway ).
+      CATCH cx_root INTO DATA(lx_any).
+        DATA(lv_long) = cl_message_helper=>get_latest_t100_exception( lx_any )->if_message~get_longtext( ).
+        IF lv_long IS INITIAL.
+          lv_long = lx_any->get_text( ).
+        ENDIF.
+        RAISE EXCEPTION NEW zcx_ahk_rap_ce_sales_order(
+                                iv_text  = |Unexpected error while reading sales order value help: { lv_long }|
+                                previous = lx_any ).
     ENDTRY.
 
     business_data_vh = CORRESPONDING #( business_data_remote MAPPING

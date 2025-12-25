@@ -129,14 +129,32 @@ CLASS zcl_ce_sales_order_ahk IMPLEMENTATION.
           ENDIF.
         ENDIF.
 
+      " https://community.sap.com/t5/technology-q-a/rap-unmanaged-query-via-custom-entity-error-handling/qaq-p/12802573
       CATCH cx_web_http_client_error INTO DATA(lx_http).
-        lv_error_message = |HTTP client error: { lx_http->get_text( ) }|.
+        RAISE EXCEPTION NEW zcx_ahk_rap_ce_sales_order(
+            iv_text  = |HTTP communication failed while reading sales orders: { lx_http->get_text( ) }|
+            previous = lx_http ).
       CATCH /iwbep/cx_cp_remote INTO DATA(lx_remote).
-        lv_error_message = |Remote error: { lx_remote->get_text( ) }|.
+        RAISE EXCEPTION NEW zcx_ahk_rap_ce_sales_order(
+                                iv_text  = |Remote error while reading sales orders: { lx_remote->get_text( ) }|
+                                previous = lx_remote ).
       CATCH /iwbep/cx_gateway INTO DATA(lx_gateway).
-        lv_error_message = |Gateway error: { lx_gateway->get_text( ) }|.
+        RAISE EXCEPTION NEW zcx_ahk_rap_ce_sales_order(
+                                iv_text  = |Gateway error while reading sales orders: { lx_gateway->get_text( ) }|
+                                previous = lx_gateway ).
       CATCH cx_http_dest_provider_error INTO DATA(lx_dest_error).
-        lv_error_message = |Destination error: { lx_dest_error->get_text( ) }|.
+        RAISE EXCEPTION NEW zcx_ahk_rap_ce_sales_order(
+            iv_text  = |Destination error while reading sales orders. Check Communication Arrangement: { lx_dest_error->get_text( ) }|
+            previous = lx_dest_error ).
+      CATCH cx_root INTO DATA(lx_any).
+        DATA(lv_long) = cl_message_helper=>get_latest_t100_exception( lx_any )->if_message~get_longtext( ).
+        IF lv_long IS INITIAL.
+          lv_long = lx_any->get_text( ).
+        ENDIF.
+
+        RAISE EXCEPTION NEW zcx_ahk_rap_ce_sales_order(
+                                iv_text  = |Unexpected error while reading sales orders: { lv_long }|
+                                previous = lx_any ).
     ENDTRY.
   ENDMETHOD.
 
@@ -191,6 +209,8 @@ CLASS zcl_ce_sales_order_ahk IMPLEMENTATION.
   METHOD get_remote_proxy.
     DATA lo_http_client TYPE REF TO if_web_http_client.
 
+    " Existing communication arrangement for SAP Sales Order API on SAP BTP Trial created by SAP itself
+    " https://community.sap.com/t5/technology-blog-posts-by-sap/how-to-build-side-by-side-extensions-for-sap-s-4hana-public-cloud-with-sap/ba-p/14235644
     DATA(lo_destination) = cl_http_destination_provider=>create_by_comm_arrangement(
                                comm_scenario  = 'ZBTP_TRIAL_SAP_COM_0109'
                                comm_system_id = 'ZBTP_TRIAL_SAP_COM_0109'
@@ -200,6 +220,8 @@ CLASS zcl_ce_sales_order_ahk IMPLEMENTATION.
 
     ro_proxy = /iwbep/cl_cp_factory_remote=>create_v2_remote_proxy(
                    is_proxy_model_key       = VALUE #( repository_id       = 'DEFAULT'
+                                                       " service consumption model name uploaded via metadata file of the Service
+                                                       " https://api.sap.com/api/OP_API_SALES_ORDER_SRV_0001/overview -> API Specification -> OData EDMX
                                                        proxy_model_id      = 'ZSCM_TEST_API_SALES_ORDER_SRV'
                                                        proxy_model_version = '0001' )
                    io_http_client           = lo_http_client
@@ -314,7 +336,6 @@ CLASS zcl_ce_sales_order_ahk IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD if_oo_adt_classrun~main.
-    " keep your existing test code or simplify to call get_remote_proxy + read_sales_order_headers
     DATA lv_error TYPE string.
 
     TRY.

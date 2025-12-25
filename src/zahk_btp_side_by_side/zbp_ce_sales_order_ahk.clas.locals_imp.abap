@@ -73,8 +73,9 @@ CLASS lhc_ZCE_SALES_ORDER_AHK IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD CreateSalesOrderWithItem.
-    DATA lv_created_sales_order TYPE zscm_test_api_sales_order_srv=>tys_a_sales_order_type-sales_order.
-    DATA lv_error               TYPE string.
+    DATA lv_created_sales_order    TYPE zscm_test_api_sales_order_srv=>tys_a_sales_order_type-sales_order.
+    DATA lv_error                  TYPE string.
+    DATA lv_addinitional_error_mes TYPE string.
 
     TRY.
         DATA(lo_proxy) = get_remote_proxy( ).
@@ -104,21 +105,31 @@ CLASS lhc_ZCE_SALES_ORDER_AHK IMPLEMENTATION.
 
       CATCH cx_http_dest_provider_error INTO DATA(lx_dest).
         lv_error = lx_dest->get_text( ).
+        lv_addinitional_error_mes = `Check Communication Arrangement`.
       CATCH cx_web_http_client_error INTO DATA(lx_http).
         lv_error = lx_http->get_text( ).
+        lv_addinitional_error_mes = `cx_web_http_client_error`.
       CATCH /iwbep/cx_cp_remote INTO DATA(lx_remote).
         lv_error = lx_remote->get_text( ).
+        lv_addinitional_error_mes = `/iwbep/cx_cp_remote`.
       CATCH /iwbep/cx_gateway INTO DATA(lx_gw).
         lv_error = lx_gw->get_text( ).
+        lv_addinitional_error_mes = `/iwbep/cx_gateway`.
       CATCH cx_root INTO DATA(lx_any).
         lv_error = cl_message_helper=>get_latest_t100_exception( lx_any )->if_message~get_longtext( ).
+        lv_addinitional_error_mes = `Unexpected Error occurred -> cx_root`.
     ENDTRY.
 
-    IF lv_error IS NOT INITIAL.
+    IF     lv_error                  IS NOT INITIAL
+       AND lv_addinitional_error_mes IS NOT INITIAL.
       " Error shown ON ui
       INSERT VALUE #( %cid = keys[ 1 ]-%cid
                       %msg = new_message_with_text( severity = if_abap_behv_message=>severity-error
                                                     text     = lv_error ) ) INTO TABLE reported-zce_sales_order_ahk.
+
+      INSERT VALUE #( %cid = keys[ 1 ]-%cid
+                      %msg = new_message_with_text( severity = if_abap_behv_message=>severity-error
+                                                    text     = lv_addinitional_error_mes ) ) INTO TABLE reported-zce_sales_order_ahk.
       INSERT VALUE #( %cid = keys[ 1 ]-%cid ) INTO TABLE failed-zce_sales_order_ahk.
     ENDIF.
   ENDMETHOD.

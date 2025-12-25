@@ -77,9 +77,30 @@ CLASS zcl_ce_vh_material_ahk IMPLEMENTATION.
           io_response->set_total_number_of_records( lv_count ).
         ENDIF.
 
-      CATCH cx_root INTO DATA(lx).
-        DATA(lv_msg) = cl_message_helper=>get_latest_t100_exception( lx )->if_message~get_longtext( ).
-        " optional: raise/log
+      CATCH cx_http_dest_provider_error INTO DATA(lx_dest_error).
+        RAISE EXCEPTION NEW zcx_ahk_rap_ce_sales_order(
+            iv_text  = |Destination error while reading materials (Plant { c_plant }). Check Communication Arrangement: { lx_dest_error->get_text( ) }|
+            previous = lx_dest_error ).
+      CATCH cx_web_http_client_error INTO DATA(lx_http).
+        RAISE EXCEPTION NEW zcx_ahk_rap_ce_sales_order(
+            iv_text  = |HTTP client error while reading materials (Plant { c_plant }): { lx_http->get_text( ) }|
+            previous = lx_http ).
+      CATCH /iwbep/cx_cp_remote INTO DATA(lx_remote).
+        RAISE EXCEPTION NEW zcx_ahk_rap_ce_sales_order(
+            iv_text  = |Remote error while reading materials (Plant { c_plant }): { lx_remote->get_text( ) }|
+            previous = lx_remote ).
+      CATCH /iwbep/cx_gateway INTO DATA(lx_gateway).
+        RAISE EXCEPTION NEW zcx_ahk_rap_ce_sales_order(
+            iv_text  = |Gateway error while reading materials (Plant { c_plant }): { lx_gateway->get_text( ) }|
+            previous = lx_gateway ).
+      CATCH cx_root INTO DATA(lx_any).
+        DATA(lv_long) = cl_message_helper=>get_latest_t100_exception( lx_any )->if_message~get_longtext( ).
+        IF lv_long IS INITIAL.
+          lv_long = lx_any->get_text( ).
+        ENDIF.
+        RAISE EXCEPTION NEW zcx_ahk_rap_ce_sales_order(
+                                iv_text  = |Unexpected error while reading materials (Plant { c_plant }): { lv_long }|
+                                previous = lx_any ).
     ENDTRY.
   ENDMETHOD.
 

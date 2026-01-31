@@ -55,8 +55,20 @@ annotate view ZRAP100_C_TRAVELTP_AHK with
   @UI.lineItem: [ { position: 80 } ]
   Description;
 
-  @UI.identification: [ { position: 90 } ]
-  @UI.lineItem: [ { position: 90 } ]
+  @UI: {
+  lineItem:       [ { position: 90, importance: #HIGH }
+                  //,{ type: #FOR_ACTION, dataAction: 'copyTravel', label: 'Copy Travel' }
+                  //,{ type: #FOR_ACTION, dataAction: 'acceptTravel', label: 'Accept Travel' }
+                  //,{ type: #FOR_ACTION, dataAction: 'rejectTravel', label: 'Reject Travel' }
+     ],
+  identification: [ { position: 90 }
+                 ,{ type: #FOR_ACTION, dataAction: 'deductDiscount', label: 'Deduct Discount' }
+                 //,{ type: #FOR_ACTION, dataAction: 'acceptTravel', label: 'Accept Travel' }
+                 //,{ type: #FOR_ACTION, dataAction: 'rejectTravel', label: 'Reject Travel' }
+     ],
+  textArrangement: #TEXT_ONLY
+  }
+
   OverallStatus;
 
   @UI.identification: [ { position: 100, qualifier: 'Attachment_File' } ]
@@ -64,13 +76,13 @@ annotate view ZRAP100_C_TRAVELTP_AHK with
   Attachment;
 
   @UI.hidden: true
-//  @UI.identification: [ { position: 110 } ]
-//  @UI.lineItem: [ { position: 110 } ]
+  //  @UI.identification: [ { position: 110 } ]
+  //  @UI.lineItem: [ { position: 110 } ]
   MimeType;
 
   @UI.hidden: true
-//  @UI.identification: [ { position: 120 } ]
-//  @UI.lineItem: [ { position: 120 } ]
+  //  @UI.identification: [ { position: 120 } ]
+  //  @UI.lineItem: [ { position: 120 } ]
   FileName;
 
   @UI.identification: [ { position: 130 } ]

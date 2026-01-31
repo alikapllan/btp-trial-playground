@@ -251,12 +251,36 @@ CLASS lhc_zrap100_r_traveltp_ahk IMPLEMENTATION.
 
   METHOD deductDiscount.
     " -------------------------------------------------------------------------
-    " Instance-bound non-factory action:
+    " Instance-bound non-factory action with parameter `deductDiscount`:
     " Deduct the specified discount from the booking fee (BookingFee)
     " -------------------------------------------------------------------------
     DATA travels_for_update TYPE TABLE FOR UPDATE zrap100_r_traveltp_ahk.
 
     DATA(keys_with_valid_discount) = keys.
+
+    " check and handle invalid discount values
+    LOOP AT keys_with_valid_discount ASSIGNING FIELD-SYMBOL(<key_with_valid_discount>)
+         WHERE %param-discount_percent IS INITIAL OR %param-discount_percent > 100 OR %param-discount_percent <= 0.
+
+      " report invalid discount value appropriately
+      APPEND VALUE #( %tky = <key_with_valid_discount>-%tky ) TO failed-travel.
+
+      APPEND VALUE #( %tky                       = <key_with_valid_discount>-%tky
+                      %msg                       = NEW /dmo/cm_flight_messages(
+                                                           textid   = /dmo/cm_flight_messages=>discount_invalid
+                                                           severity = if_abap_behv_message=>severity-error )
+                      %element-TotalPrice        = if_abap_behv=>mk-on
+                      %op-%action-deductDiscount = if_abap_behv=>mk-on )
+             TO reported-travel.
+
+      " remove invalid discount value
+      DELETE keys_with_valid_discount.
+    ENDLOOP.
+
+    " check and go ahead with valid discount values
+    IF keys_with_valid_discount IS INITIAL.
+      RETURN.
+    ENDIF.
 
     " read relevant travel instance data (only booking fee)
     READ ENTITIES OF zrap100_r_traveltp_ahk IN LOCAL MODE
@@ -266,7 +290,11 @@ CLASS lhc_zrap100_r_traveltp_ahk IMPLEMENTATION.
          RESULT DATA(travels).
 
     LOOP AT travels ASSIGNING FIELD-SYMBOL(<travel>).
-      DATA(reduced_fee) = <travel>-BookingFee * ( 1 - 3 / 10 ).
+      DATA percentage TYPE decfloat16.
+      DATA(discount_percent) = keys_with_valid_discount[ KEY draft
+                                                         %tky = <travel>-%tky ]-%param-discount_percent.
+      percentage = discount_percent / 100.
+      DATA(reduced_fee) = <travel>-BookingFee * ( 1 - percentage ).
 
       APPEND VALUE #( %tky       = <travel>-%tky
                       BookingFee = reduced_fee )

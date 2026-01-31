@@ -22,6 +22,11 @@ CLASS lhc_zrap100_r_traveltp_ahk DEFINITION INHERITING FROM cl_abap_behavior_han
       IMPORTING keys FOR ACTION Travel~deductDiscount RESULT result.
     METHODS copyTravel FOR MODIFY
       IMPORTING keys FOR ACTION Travel~copyTravel.
+    METHODS acceptTravel FOR MODIFY
+      IMPORTING keys FOR ACTION Travel~acceptTravel RESULT result.
+
+    METHODS rejectTravel FOR MODIFY
+      IMPORTING keys FOR ACTION Travel~rejectTravel RESULT result.
     METHODS earlynumbering_create FOR NUMBERING
                   IMPORTING entities FOR CREATE Travel.
 ENDCLASS.
@@ -368,5 +373,59 @@ CLASS lhc_zrap100_r_traveltp_ahk IMPLEMENTATION.
 
     " set the new BO instances
     mapped-travel = mapped_create-travel.
+  ENDMETHOD.
+
+  METHOD acceptTravel.
+    " ------------------------------------------------------------------------------------
+    " Instance-bound non-factory action: Set the overall travel status to 'A' (accepted)
+    " ------------------------------------------------------------------------------------
+    " modify travel instance
+    MODIFY ENTITIES OF zrap100_r_traveltp_ahk IN LOCAL MODE
+           ENTITY Travel
+           UPDATE FIELDS ( OverallStatus )
+           WITH VALUE #( FOR key IN keys
+                         ( %tky          = key-%tky
+                           OverallStatus = travel_status-accepted ) )  " 'A'
+           FAILED failed
+           REPORTED reported.
+
+    " read changed data for action result
+    READ ENTITIES OF zrap100_r_traveltp_ahk IN LOCAL MODE
+         ENTITY Travel
+         ALL FIELDS WITH
+         CORRESPONDING #( keys )
+         RESULT DATA(travels).
+
+    " set the action result parameter
+    result = VALUE #( FOR travel IN travels
+                      ( %tky   = travel-%tky
+                        %param = travel ) ).
+  ENDMETHOD.
+
+  METHOD rejectTravel.
+    " ------------------------------------------------------------------------------------
+    " Instance-bound non-factory action: Set the overall travel status to 'X' (rejected)
+    " ------------------------------------------------------------------------------------
+    " modify travel instance(s)
+    MODIFY ENTITIES OF zrap100_r_traveltp_ahk IN LOCAL MODE
+           ENTITY Travel
+           UPDATE FIELDS ( OverallStatus )
+           WITH VALUE #( FOR key IN keys
+                         ( %tky          = key-%tky
+                           OverallStatus = travel_status-rejected ) )  " 'X'
+           FAILED failed
+           REPORTED reported.
+
+    " read changed data for action result
+    READ ENTITIES OF zrap100_r_traveltp_ahk IN LOCAL MODE
+         ENTITY Travel
+         ALL FIELDS WITH
+         CORRESPONDING #( keys )
+         RESULT DATA(travels).
+
+    " set the action result parameter
+    result = VALUE #( FOR travel IN travels
+                      ( %tky   = travel-%tky
+                        %param = travel ) ).
   ENDMETHOD.
 ENDCLASS.

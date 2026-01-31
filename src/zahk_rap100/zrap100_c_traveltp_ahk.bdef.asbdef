@@ -19,4 +19,8 @@ use etag
 
   use action deductDiscount;
   use action copyTravel;
+
+  use action acceptTravel;
+  use action rejectTravel;
+
 }

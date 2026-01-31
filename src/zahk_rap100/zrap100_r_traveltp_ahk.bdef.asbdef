@@ -42,6 +42,9 @@ early numbering
 
   factory action copyTravel [1];
 
+  action acceptTravel result [1] $self;
+  action rejectTravel result [1] $self;
+
   draft action Activate optimized;
   draft action Discard;
   draft action Edit;

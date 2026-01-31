@@ -23,6 +23,10 @@ early numbering
   field ( readonly )
   TravelID;
 
+  field ( mandatory )
+  CustomerID,
+  BeginDate,
+  EndDate;
 
   create;
   update;
@@ -31,11 +35,20 @@ early numbering
   // default value of the field OverallStatus to open (O) at the creation time of new Travel instances
   determination setStatusToOpen on modify { create; }
 
+  validation validateCustomer on save { create; field CustomerID; }
+  validation validateDates on save { create; field BeginDate, EndDate; }
+
+
   draft action Activate optimized;
   draft action Discard;
   draft action Edit;
   draft action Resume;
-  draft determine action Prepare;
+  // In order to have draft instances being checked and determinations being executed before they become active
+  draft determine action Prepare
+  {
+    validation validateCustomer;
+    validation validateDates;
+  }
 
   mapping for zahk_rap100_atrv corresponding extensible
     {

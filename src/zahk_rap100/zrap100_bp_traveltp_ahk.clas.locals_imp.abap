@@ -1,9 +1,18 @@
 CLASS lhc_zrap100_r_traveltp_ahk DEFINITION INHERITING FROM cl_abap_behavior_handler.
   PRIVATE SECTION.
+    CONSTANTS:
+      BEGIN OF travel_status,
+        open     TYPE c LENGTH 1 VALUE 'O', " Open
+        accepted TYPE c LENGTH 1 VALUE 'A', " Accepted
+        rejected TYPE c LENGTH 1 VALUE 'X', " Rejected
+      END OF travel_status.
+
     METHODS get_global_authorizations FOR GLOBAL AUTHORIZATION
               IMPORTING
                  REQUEST requested_authorizations FOR Travel
               RESULT result.
+    METHODS setStatusToOpen FOR DETERMINE ON MODIFY
+      IMPORTING keys FOR Travel~setStatusToOpen.
     METHODS earlynumbering_create FOR NUMBERING
                   IMPORTING entities FOR CREATE Travel.
 ENDCLASS.
@@ -80,5 +89,32 @@ CLASS lhc_zrap100_r_traveltp_ahk IMPLEMENTATION.
                       %is_draft = entity-%is_draft ) " Draft indicator
              TO mapped-travel.                     " Map generated ID back to framework via %cid
     ENDLOOP.
+  ENDMETHOD.
+
+  METHOD setStatusToOpen.
+    READ ENTITIES OF zrap100_r_traveltp_ahk IN LOCAL MODE
+         ENTITY Travel
+         FIELDS ( OverallStatus )
+         WITH CORRESPONDING #( keys )
+         RESULT DATA(travels)
+         FAILED DATA(read_failed).
+
+    " If overall travel status is already set, do nothing, i.e. remove such instances
+    DELETE travels WHERE OverallStatus IS NOT INITIAL.
+    IF travels IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    " else set overall travel status to open 'O'
+    MODIFY ENTITIES OF zrap100_r_traveltp_ahk IN LOCAL MODE
+           ENTITY Travel
+           UPDATE SET FIELDS
+           WITH VALUE #( FOR travel IN travels
+                         ( %tky          = travel-%tky
+                           OverallStatus = travel_status-open ) )
+           REPORTED DATA(update_reported).
+
+    " set the changing parameter
+    reported = CORRESPONDING #( DEEP update_reported ).
   ENDMETHOD.
 ENDCLASS.

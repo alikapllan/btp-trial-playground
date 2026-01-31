@@ -28,6 +28,9 @@ early numbering
   update;
   delete;
 
+  // default value of the field OverallStatus to open (O) at the creation time of new Travel instances
+  determination setStatusToOpen on modify { create; }
+
   draft action Activate optimized;
   draft action Discard;
   draft action Edit;

@@ -40,6 +40,8 @@ early numbering
 
   action deductDiscount parameter ZAHK_A_TRAVEL_DISCOUNT result [1] $self;
 
+  factory action copyTravel [1];
+
   draft action Activate optimized;
   draft action Discard;
   draft action Edit;

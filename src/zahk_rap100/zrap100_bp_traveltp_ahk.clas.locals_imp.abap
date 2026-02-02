@@ -11,22 +11,31 @@ CLASS lhc_zrap100_r_traveltp_ahk DEFINITION INHERITING FROM cl_abap_behavior_han
               IMPORTING
                  REQUEST requested_authorizations FOR Travel
               RESULT result.
+
+    METHODS get_instance_features FOR INSTANCE FEATURES
+        IMPORTING keys REQUEST requested_features FOR Travel RESULT result.
+
     METHODS setStatusToOpen FOR DETERMINE ON MODIFY
       IMPORTING keys FOR Travel~setStatusToOpen.
+
     METHODS validateCustomer FOR VALIDATE ON SAVE
       IMPORTING keys FOR Travel~validateCustomer.
 
     METHODS validateDates FOR VALIDATE ON SAVE
       IMPORTING keys FOR Travel~validateDates.
+
     METHODS deductDiscount FOR MODIFY
       IMPORTING keys FOR ACTION Travel~deductDiscount RESULT result.
+
     METHODS copyTravel FOR MODIFY
       IMPORTING keys FOR ACTION Travel~copyTravel.
+
     METHODS acceptTravel FOR MODIFY
       IMPORTING keys FOR ACTION Travel~acceptTravel RESULT result.
 
     METHODS rejectTravel FOR MODIFY
       IMPORTING keys FOR ACTION Travel~rejectTravel RESULT result.
+
     METHODS earlynumbering_create FOR NUMBERING
                   IMPORTING entities FOR CREATE Travel.
 ENDCLASS.
@@ -34,6 +43,43 @@ ENDCLASS.
 
 CLASS lhc_zrap100_r_traveltp_ahk IMPLEMENTATION.
   METHOD get_global_authorizations.
+  ENDMETHOD.
+
+  METHOD get_instance_features.
+    " -------------------------------------------------------------------------
+    " Instance-based dynamic feature control
+    " -------------------------------------------------------------------------
+    " read relevant travel instance data
+    READ ENTITIES OF zrap100_r_traveltp_ahk IN LOCAL MODE
+         ENTITY travel
+         FIELDS ( TravelID OverallStatus )
+         WITH CORRESPONDING #( keys )
+         RESULT DATA(travels)
+         FAILED failed.
+
+    " evaluate the conditions, set the operation state, and set result parameter
+    result = VALUE #(
+        FOR travel IN travels
+        ( %tky                   = travel-%tky
+
+          %features-%update      = COND #( WHEN travel-OverallStatus = travel_status-accepted
+                                           THEN if_abap_behv=>fc-o-disabled
+                                           ELSE if_abap_behv=>fc-o-enabled   )
+          %features-%delete      = COND #( WHEN travel-OverallStatus = travel_status-open
+                                           THEN if_abap_behv=>fc-o-enabled
+                                           ELSE if_abap_behv=>fc-o-disabled   )
+          %action-Edit           = COND #( WHEN travel-OverallStatus = travel_status-accepted
+                                           THEN if_abap_behv=>fc-o-disabled
+                                           ELSE if_abap_behv=>fc-o-enabled   )
+          %action-acceptTravel   = COND #( WHEN travel-OverallStatus = travel_status-accepted
+                                           THEN if_abap_behv=>fc-o-disabled
+                                           ELSE if_abap_behv=>fc-o-enabled   )
+          %action-rejectTravel   = COND #( WHEN travel-OverallStatus = travel_status-rejected
+                                           THEN if_abap_behv=>fc-o-disabled
+                                           ELSE if_abap_behv=>fc-o-enabled   )
+          %action-deductDiscount = COND #( WHEN travel-OverallStatus = travel_status-open
+                                           THEN if_abap_behv=>fc-o-enabled
+                                           ELSE if_abap_behv=>fc-o-disabled   ) ) ).
   ENDMETHOD.
 
   METHOD earlynumbering_create.

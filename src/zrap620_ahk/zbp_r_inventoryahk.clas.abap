@@ -1,8 +1,6 @@
 class ZBP_R_INVENTORYAHK definition
   public
-  abstract
-  final
-  for behavior of ZR_INVENTORYAHK .
+  create private .
 
 public section.
 protected section.

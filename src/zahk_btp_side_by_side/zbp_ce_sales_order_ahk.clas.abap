@@ -1,5 +1,13 @@
-CLASS zbp_ce_sales_order_ahk DEFINITION PUBLIC ABSTRACT FINAL FOR BEHAVIOR OF zce_sales_order_ahk.
+class ZBP_CE_SALES_ORDER_AHK definition
+  public
+  create private .
+
+public section.
+protected section.
+private section.
 ENDCLASS.
 
-CLASS zbp_ce_sales_order_ahk IMPLEMENTATION.
+
+
+CLASS ZBP_CE_SALES_ORDER_AHK IMPLEMENTATION.
 ENDCLASS.
